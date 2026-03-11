@@ -1,0 +1,13 @@
+# Folder cấu hình máy ảo
+devops/vagrant/.vagrant/
+
+# Các file tạm của Windows/OS
+.DS_Store
+Thumbs.db
+
+# Ignored in app (đã có trong app/.gitignore nhưng thêm ở đây cho chắc)
+node_modules/
+dist/
+build/
+*.log
+app.db
