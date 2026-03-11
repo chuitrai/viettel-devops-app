@@ -1,0 +1,5 @@
+{
+  "name": "VDT 2025 Cloud Practice App",
+  "description": "A 3-layer microservices-ready web application for DevOps practice, including metrics, logging, auth, and rate limiting.",
+  "requestFramePermissions": []
+}
