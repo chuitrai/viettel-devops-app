@@ -14,7 +14,7 @@ WORKDIR /app
 # Create a non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY package*.json ./
+COPY package*.json ./f
 RUN npm ci --omit=dev
 
 # Copy compiled frontend and backend

@@ -104,3 +104,29 @@ kubectl get secret --namespace jenkins my-jenkins -o jsonpath="{.data.jenkins-ad
 # Lấy Password của ArgoCD (Username mặc định: admin)
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 ```
+
+### 4. Mở Cổng Dịch Vụ (NodePort) để truy cập giao diện Web Browser
+Mặc định, K8s giấu kín Jenkins và ArgoCD ở mạng nội bộ (ClusterIP). Để truy cập được từ máy tính Windows bên ngoài, ta phải "đục lỗ" tường lửa bằng cách chuyển kiểu Service sang `NodePort` và ép K8s mở một cổng tĩnh cố định.
+
+```bash
+# 1. Ép mở cổng 32000 cho Jenkins
+kubectl patch svc my-jenkins -n jenkins --type json -p '[
+  {"op": "replace", "path": "/spec/type", "value": "NodePort"},
+  {"op": "replace", "path": "/spec/ports/0/nodePort", "value": 32000}
+]'
+
+# 2. Ép mở cổng 32001 (HTTP) và 32002 (HTTPS) cho ArgoCD
+kubectl patch svc argocd-server -n argocd --type json -p '[
+  {"op": "replace", "path": "/spec/type", "value": "NodePort"},
+  {"op": "replace", "path": "/spec/ports/0/nodePort", "value": 32001},
+  {"op": "replace", "path": "/spec/ports/1/nodePort", "value": 32002}
+]'
+```
+
+**Truy cập trên Trình Duyệt Web:**
+- **URL của Jenkins:** `http://<IP-MÁY-ẢO>:32000` (Ví dụ: `http://192.168.56.10:32000` hoặc `http://192.168.56.11:32000`)
+- **URL của ArgoCD:** `https://<IP-MÁY-ẢO>:32002` (Chú ý phải dùng `https://` và đồng ý cảnh báo bảo mật)
+
+> 💡 **Kiến thức K8s: Tại sao có thể mở web bằng IP của máy Worker (192.168.56.11) thay vì máy Master (192.168.56.10)?**
+> Bản chất của kiểu mạng lưới **NodePort** trong K8s là khái niệm "Cổng mở toàn cục". Khi bạn ban hành lệnh tạo NodePort (ví dụ cổng 32000), ông bảo vệ *Kube-proxy* sẽ lập tức chạy đi mở toang cổng 32000 trên **tất cả** các máy ảo đang có trong Cụm (Bao gồm cả Master và mọi Worker Node). 
+> Dù bản thân cái Pod Jenkins đang nằm vật lý ở máy Master hay máy Worker, Kube-proxy cũng tự lập một bản đồ định tuyến ngầm. Nếu bạn gõ IP máy Worker, Worker Node sẽ hứng Traffic, xem xét bản đồ, và nhận ra *"À cái Jenkins này đang nằm ở Master"*, nó sẽ tự động làm thao tác bế gói tin Network (NAT) quăng ngược lại sang máy Master cho bạn. Do đó, với K8s, **bạn dùng IP của máy nào trong luồng mạng cũng đều ra kết quả giống hệt nhau!**
