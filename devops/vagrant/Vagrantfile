@@ -37,7 +37,7 @@ Vagrant.configure("2") do |config|
 
     worker.vm.provider "virtualbox" do |vb|
       vb.name = "worker"
-      vb.memory = "6144"
+      vb.memory = "8192" # Tăng lên 8GB cho phép tải nặng
       vb.cpus = "4"
     end
 

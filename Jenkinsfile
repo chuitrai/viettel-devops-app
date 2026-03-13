@@ -9,18 +9,34 @@ pipeline {
               - name: golang
                 image: golang:1.21-alpine
                 command:
-                - cat
+                - sleep
+                - "9999999"
                 tty: true
+                resources:
+                  requests:
+                    memory: "128Mi"
+                    cpu: "100m"
+                  limits:
+                    memory: "512Mi"
+                    cpu: "500m"
               - name: docker
                 image: docker:dind
                 command:
-                - cat
+                - sleep
+                - "9999999"
                 tty: true
                 securityContext:
                   privileged: true
                 env:
                 - name: DOCKER_TLS_CERTDIR
                   value: ""
+                resources:
+                  requests:
+                    memory: "256Mi"
+                    cpu: "100m"
+                  limits:
+                    memory: "1024Mi"
+                    cpu: "1000m"
             '''
         }
     }
