@@ -9,8 +9,7 @@ pipeline {
               - name: golang
                 image: golang:1.21-alpine
                 command:
-                - sleep
-                - "9999999"
+                - cat
                 tty: true
                 resources:
                   requests:
@@ -22,8 +21,7 @@ pipeline {
               - name: docker
                 image: docker:dind
                 command:
-                - sleep
-                - "9999999"
+                - cat
                 tty: true
                 securityContext:
                   privileged: true
