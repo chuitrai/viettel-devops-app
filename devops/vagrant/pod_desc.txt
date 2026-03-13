@@ -1,0 +1,162 @@
+Name:             argocd-repo-server-5ff9c66467-vsfql
+Namespace:        argocd
+Priority:         0
+Service Account:  argocd-repo-server
+Node:             worker/10.0.2.15
+Start Time:       Wed, 11 Mar 2026 08:27:58 +0000
+Labels:           app.kubernetes.io/name=argocd-repo-server
+                  pod-template-hash=5ff9c66467
+Annotations:      <none>
+Status:           Running
+IP:               10.244.1.21
+IPs:
+  IP:           10.244.1.21
+Controlled By:  ReplicaSet/argocd-repo-server-5ff9c66467
+Init Containers:
+  copyutil:
+    Container ID:    containerd://690e07fd0ea23f19994c95e24d804ef4737202f3c2fe53cb3270b350b872b60d
+    Image:           quay.io/argoproj/argocd:v3.3.3
+    Image ID:        quay.io/argoproj/argocd@sha256:8b9a0993937850c1ee6e2ada47a2be8259d512e959ae58afa39936658f7b52e7
+    Port:            <none>
+    Host Port:       <none>
+    SeccompProfile:  RuntimeDefault
+    Command:
+      sh
+      -c
+    Args:
+      /bin/cp --update=none /usr/local/bin/argocd /var/run/argocd/argocd && /bin/ln -s /var/run/argocd/argocd /var/run/argocd/argocd-cmp-server
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+      Started:      Wed, 11 Mar 2026 17:52:32 +0000
+      Finished:     Wed, 11 Mar 2026 17:52:32 +0000
+    Ready:          False
+    Restart Count:  69
+    Environment:    <none>
+    Mounts:
+      /var/run/argocd from var-files (rw)
+Containers:
+  argocd-repo-server:
+    Container ID:    containerd://bd53b30b92b4f819d84989068748ff8c4fa8fd145b55a6e19015bf4da566bec4
+    Image:           quay.io/argoproj/argocd:v3.3.3
+    Image ID:        quay.io/argoproj/argocd@sha256:8b9a0993937850c1ee6e2ada47a2be8259d512e959ae58afa39936658f7b52e7
+    Ports:           8081/TCP, 8084/TCP
+    Host Ports:      0/TCP, 0/TCP
+    SeccompProfile:  RuntimeDefault
+    Args:
+      /usr/local/bin/argocd-repo-server
+    State:          Terminated
+      Reason:       Unknown
+      Exit Code:    255
+      Started:      Wed, 11 Mar 2026 08:30:16 +0000
+      Finished:     Wed, 11 Mar 2026 12:22:40 +0000
+    Ready:          False
+    Restart Count:  0
+    Liveness:       http-get http://:8084/healthz%3Ffull=true delay=30s timeout=5s period=30s #success=1 #failure=3
+    Readiness:      http-get http://:8084/healthz delay=5s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      REDIS_PASSWORD:                                               <set to the key 'auth' in secret 'argocd-redis'>                                                             Optional: false
+      ARGOCD_RECONCILIATION_TIMEOUT:                                <set to the key 'timeout.reconciliation' of config map 'argocd-cm'>                                          Optional: true
+      ARGOCD_REPO_SERVER_LOGFORMAT:                                 <set to the key 'reposerver.log.format' of config map 'argocd-cmd-params-cm'>                                Optional: true
+      ARGOCD_REPO_SERVER_LOGLEVEL:                                  <set to the key 'reposerver.log.level' of config map 'argocd-cmd-params-cm'>                                 Optional: true
+      ARGOCD_LOG_FORMAT_TIMESTAMP:                                  <set to the key 'log.format.timestamp' of config map 'argocd-cmd-params-cm'>                                 Optional: true
+      ARGOCD_REPO_SERVER_PARALLELISM_LIMIT:                         <set to the key 'reposerver.parallelism.limit' of config map 'argocd-cmd-params-cm'>                         Optional: true
+      ARGOCD_REPO_SERVER_LISTEN_ADDRESS:                            <set to the key 'reposerver.listen.address' of config map 'argocd-cmd-params-cm'>                            Optional: true
+      ARGOCD_REPO_SERVER_LISTEN_METRICS_ADDRESS:                    <set to the key 'reposerver.metrics.listen.address' of config map 'argocd-cmd-params-cm'>                    Optional: true
+      ARGOCD_REPO_SERVER_DISABLE_TLS:                               <set to the key 'reposerver.disable.tls' of config map 'argocd-cmd-params-cm'>                               Optional: true
+      ARGOCD_TLS_MIN_VERSION:                                       <set to the key 'reposerver.tls.minversion' of config map 'argocd-cmd-params-cm'>                            Optional: true
+      ARGOCD_TLS_MAX_VERSION:                                       <set to the key 'reposerver.tls.maxversion' of config map 'argocd-cmd-params-cm'>                            Optional: true
+      ARGOCD_TLS_CIPHERS:                                           <set to the key 'reposerver.tls.ciphers' of config map 'argocd-cmd-params-cm'>                               Optional: true
+      ARGOCD_REPO_CACHE_EXPIRATION:                                 <set to the key 'reposerver.repo.cache.expiration' of config map 'argocd-cmd-params-cm'>                     Optional: true
+      REDIS_SERVER:                                                 <set to the key 'redis.server' of config map 'argocd-cmd-params-cm'>                                         Optional: true
+      REDIS_COMPRESSION:                                            <set to the key 'redis.compression' of config map 'argocd-cmd-params-cm'>                                    Optional: true
+      REDISDB:                                                      <set to the key 'redis.db' of config map 'argocd-cmd-params-cm'>                                             Optional: true
+      ARGOCD_DEFAULT_CACHE_EXPIRATION:                              <set to the key 'reposerver.default.cache.expiration' of config map 'argocd-cmd-params-cm'>                  Optional: true
+      ARGOCD_REPO_SERVER_OTLP_ADDRESS:                              <set to the key 'otlp.address' of config map 'argocd-cmd-params-cm'>                                         Optional: true
+      ARGOCD_REPO_SERVER_OTLP_INSECURE:                             <set to the key 'otlp.insecure' of config map 'argocd-cmd-params-cm'>                                        Optional: true
+      ARGOCD_REPO_SERVER_OTLP_HEADERS:                              <set to the key 'otlp.headers' of config map 'argocd-cmd-params-cm'>                                         Optional: true
+      ARGOCD_REPO_SERVER_OTLP_ATTRS:                                <set to the key 'otlp.attrs' of config map 'argocd-cmd-params-cm'>                                           Optional: true
+      ARGOCD_REPO_SERVER_MAX_COMBINED_DIRECTORY_MANIFESTS_SIZE:     <set to the key 'reposerver.max.combined.directory.manifests.size' of config map 'argocd-cmd-params-cm'>     Optional: true
+      ARGOCD_REPO_SERVER_PLUGIN_TAR_EXCLUSIONS:                     <set to the key 'reposerver.plugin.tar.exclusions' of config map 'argocd-cmd-params-cm'>                     Optional: true
+      ARGOCD_REPO_SERVER_PLUGIN_USE_MANIFEST_GENERATE_PATHS:        <set to the key 'reposerver.plugin.use.manifest.generate.paths' of config map 'argocd-cmd-params-cm'>        Optional: true
+      ARGOCD_REPO_SERVER_ALLOW_OUT_OF_BOUNDS_SYMLINKS:              <set to the key 'reposerver.allow.oob.symlinks' of config map 'argocd-cmd-params-cm'>                        Optional: true
+      ARGOCD_REPO_SERVER_STREAMED_MANIFEST_MAX_TAR_SIZE:            <set to the key 'reposerver.streamed.manifest.max.tar.size' of config map 'argocd-cmd-params-cm'>            Optional: true
+      ARGOCD_REPO_SERVER_STREAMED_MANIFEST_MAX_EXTRACTED_SIZE:      <set to the key 'reposerver.streamed.manifest.max.extracted.size' of config map 'argocd-cmd-params-cm'>      Optional: true
+      ARGOCD_REPO_SERVER_HELM_MANIFEST_MAX_EXTRACTED_SIZE:          <set to the key 'reposerver.helm.manifest.max.extracted.size' of config map 'argocd-cmd-params-cm'>          Optional: true
+      ARGOCD_REPO_SERVER_DISABLE_HELM_MANIFEST_MAX_EXTRACTED_SIZE:  <set to the key 'reposerver.disable.helm.manifest.max.extracted.size' of config map 'argocd-cmd-params-cm'>  Optional: true
+      ARGOCD_REPO_SERVER_OCI_MANIFEST_MAX_EXTRACTED_SIZE:           <set to the key 'reposerver.oci.manifest.max.extracted.size' of config map 'argocd-cmd-params-cm'>           Optional: true
+      ARGOCD_REPO_SERVER_DISABLE_OCI_MANIFEST_MAX_EXTRACTED_SIZE:   <set to the key 'reposerver.disable.oci.manifest.max.extracted.size' of config map 'argocd-cmd-params-cm'>   Optional: true
+      ARGOCD_REPO_SERVER_OCI_LAYER_MEDIA_TYPES:                     <set to the key 'reposerver.oci.layer.media.types' of config map 'argocd-cmd-params-cm'>                     Optional: true
+      ARGOCD_REVISION_CACHE_LOCK_TIMEOUT:                           <set to the key 'reposerver.revision.cache.lock.timeout' of config map 'argocd-cmd-params-cm'>               Optional: true
+      ARGOCD_GIT_MODULES_ENABLED:                                   <set to the key 'reposerver.enable.git.submodule' of config map 'argocd-cmd-params-cm'>                      Optional: true
+      ARGOCD_GIT_LS_REMOTE_PARALLELISM_LIMIT:                       <set to the key 'reposerver.git.lsremote.parallelism.limit' of config map 'argocd-cmd-params-cm'>            Optional: true
+      ARGOCD_GIT_REQUEST_TIMEOUT:                                   <set to the key 'reposerver.git.request.timeout' of config map 'argocd-cmd-params-cm'>                       Optional: true
+      ARGOCD_REPO_SERVER_ENABLE_BUILTIN_GIT_CONFIG:                 <set to the key 'reposerver.enable.builtin.git.config' of config map 'argocd-cmd-params-cm'>                 Optional: true
+      ARGOCD_GRPC_MAX_SIZE_MB:                                      <set to the key 'reposerver.grpc.max.size' of config map 'argocd-cmd-params-cm'>                             Optional: true
+      ARGOCD_REPO_SERVER_INCLUDE_HIDDEN_DIRECTORIES:                <set to the key 'reposerver.include.hidden.directories' of config map 'argocd-cmd-params-cm'>                Optional: true
+      HELM_CACHE_HOME:                                              /helm-working-dir
+      HELM_CONFIG_HOME:                                             /helm-working-dir
+      HELM_DATA_HOME:                                               /helm-working-dir
+    Mounts:
+      /app/config/gpg/keys from gpg-keyring (rw)
+      /app/config/gpg/source from gpg-keys (rw)
+      /app/config/reposerver/tls from argocd-repo-server-tls (rw)
+      /app/config/ssh from ssh-known-hosts (rw)
+      /app/config/tls from tls-certs (rw)
+      /helm-working-dir from helm-working-dir (rw)
+      /home/argocd/cmp-server/plugins from plugins (rw)
+      /tmp from tmp (rw)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  ssh-known-hosts:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      argocd-ssh-known-hosts-cm
+    Optional:  false
+  tls-certs:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      argocd-tls-certs-cm
+    Optional:  false
+  gpg-keys:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      argocd-gpg-keys-cm
+    Optional:  false
+  gpg-keyring:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  tmp:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  helm-working-dir:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  argocd-repo-server-tls:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  argocd-repo-server-tls
+    Optional:    true
+  var-files:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  plugins:
+    Type:        EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:      
+    SizeLimit:   <unset>
+QoS Class:       BestEffort
+Node-Selectors:  kubernetes.io/os=linux
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason   Age                       From     Message
+  ----     ------   ----                      ----     -------
+  Warning  BackOff  2m45s (x1520 over 5h32m)  kubelet  Back-off restarting failed container copyutil in pod argocd-repo-server-5ff9c66467-vsfql_argocd(48fd3d95-fc90-47d0-80ad-f0c700746e56)

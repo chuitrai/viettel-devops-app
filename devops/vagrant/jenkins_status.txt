@@ -1,0 +1,189 @@
+Name:             my-jenkins-0
+Namespace:        jenkins
+Priority:         0
+Service Account:  my-jenkins
+Node:             worker/10.0.2.15
+Start Time:       Fri, 13 Mar 2026 07:04:45 +0000
+Labels:           app.kubernetes.io/component=jenkins-controller
+                  app.kubernetes.io/instance=my-jenkins
+                  app.kubernetes.io/managed-by=Helm
+                  app.kubernetes.io/name=jenkins
+                  apps.kubernetes.io/pod-index=0
+                  controller-revision-hash=my-jenkins-7db46bd74c
+                  helm.sh/chart=jenkins-5.9.4
+                  statefulset.kubernetes.io/pod-name=my-jenkins-0
+Annotations:      checksum/config: 69da8c0f4482537a2923c6516caec619f3e06837c28cdb443296a98aea476da2
+Status:           Running
+IP:               10.244.1.80
+IPs:
+  IP:           10.244.1.80
+Controlled By:  StatefulSet/my-jenkins
+Init Containers:
+  config-reload-init:
+    Container ID:   containerd://d11041968418f615d0466f62a97a0e5c6288afea096474114cf7b19c6db45d6f
+    Image:          docker.io/kiwigrid/k8s-sidecar:2.5.0
+    Image ID:       docker.io/kiwigrid/k8s-sidecar@sha256:a6b3f707f883108376514489a94d6629109a327b2978e1d826cd104c4ca436df
+    Port:           <none>
+    Host Port:      <none>
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 13 Mar 2026 07:04:46 +0000
+      Finished:     Fri, 13 Mar 2026 07:04:52 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      POD_NAME:     my-jenkins-0 (v1:metadata.name)
+      LABEL:        my-jenkins-jenkins-config
+      HEALTH_PORT:  8060
+      FOLDER:       /var/jenkins_home/casc_configs
+      NAMESPACE:    jenkins
+      METHOD:       LIST
+    Mounts:
+      /tmp from tmp-volume (rw)
+      /var/jenkins_home from jenkins-home (rw)
+      /var/jenkins_home/casc_configs from sc-config-volume (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wbp4j (ro)
+  init:
+    Container ID:  containerd://e57b79caab99588edead786003a79fac319a96e4ef0b2aba1682844fb353884a
+    Image:         docker.io/jenkins/jenkins:2.541.2-jdk21
+    Image ID:      docker.io/jenkins/jenkins@sha256:23b84d1066dbe69f2c17288c83ac071127092d726f14b3b80444d868468619c7
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      /var/jenkins_config/apply_config.sh
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 13 Mar 2026 07:04:56 +0000
+      Finished:     Fri, 13 Mar 2026 07:05:41 +0000
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     2
+      memory:  4Gi
+    Requests:
+      cpu:        50m
+      memory:     256Mi
+    Environment:  <none>
+    Mounts:
+      /tmp from tmp-volume (rw)
+      /usr/share/jenkins/ref/plugins from plugins (rw)
+      /var/jenkins_config from jenkins-config (rw)
+      /var/jenkins_home from jenkins-home (rw)
+      /var/jenkins_plugins from plugin-dir (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wbp4j (ro)
+Containers:
+  jenkins:
+    Container ID:  containerd://81c81d7f2b0f2bcec51485a58810c47d2478e7f32a7c74a389fc293403c6f385
+    Image:         docker.io/jenkins/jenkins:2.541.2-jdk21
+    Image ID:      docker.io/jenkins/jenkins@sha256:23b84d1066dbe69f2c17288c83ac071127092d726f14b3b80444d868468619c7
+    Ports:         8080/TCP, 50000/TCP
+    Host Ports:    0/TCP, 0/TCP
+    Args:
+      --httpPort=8080
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:05:45 +0000
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     2
+      memory:  4Gi
+    Requests:
+      cpu:      50m
+      memory:   256Mi
+    Liveness:   http-get http://:http/login delay=0s timeout=5s period=10s #success=1 #failure=5
+    Readiness:  http-get http://:http/login delay=0s timeout=5s period=10s #success=1 #failure=3
+    Startup:    http-get http://:http/login delay=0s timeout=5s period=10s #success=1 #failure=12
+    Environment:
+      SECRETS:                   /run/secrets/additional
+      POD_NAME:                  my-jenkins-0 (v1:metadata.name)
+      JAVA_OPTS:                 -Dcasc.reload.token=$(POD_NAME) 
+      JENKINS_OPTS:              --webroot=/var/jenkins_cache/war 
+      JENKINS_SLAVE_AGENT_PORT:  50000
+      CASC_JENKINS_CONFIG:       /var/jenkins_home/casc_configs
+    Mounts:
+      /run/secrets/additional from jenkins-secrets (ro)
+      /tmp from tmp-volume (rw)
+      /usr/share/jenkins/ref/plugins/ from plugin-dir (rw)
+      /var/jenkins_cache from jenkins-cache (rw)
+      /var/jenkins_config from jenkins-config (ro)
+      /var/jenkins_home from jenkins-home (rw)
+      /var/jenkins_home/casc_configs from sc-config-volume (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wbp4j (ro)
+  config-reload:
+    Container ID:   containerd://ec481a3abf2c64328a9f99b83266c633fb95e2edd36d2f824ff14083e5e5ba37
+    Image:          docker.io/kiwigrid/k8s-sidecar:2.5.0
+    Image ID:       docker.io/kiwigrid/k8s-sidecar@sha256:a6b3f707f883108376514489a94d6629109a327b2978e1d826cd104c4ca436df
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Fri, 13 Mar 2026 07:05:46 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      POD_NAME:           my-jenkins-0 (v1:metadata.name)
+      LABEL:              my-jenkins-jenkins-config
+      HEALTH_PORT:        8060
+      FOLDER:             /var/jenkins_home/casc_configs
+      NAMESPACE:          jenkins
+      REQ_URL:            http://localhost:8080/reload-configuration-as-code/?casc-reload-token=$(POD_NAME)
+      REQ_METHOD:         POST
+      REQ_RETRY_CONNECT:  10
+    Mounts:
+      /tmp from tmp-volume (rw)
+      /var/jenkins_home from jenkins-home (rw)
+      /var/jenkins_home/casc_configs from sc-config-volume (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wbp4j (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  plugins:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  jenkins-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      my-jenkins
+    Optional:  false
+  plugin-dir:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  jenkins-secrets:
+    Type:                Projected (a volume that contains injected data from multiple sources)
+    SecretName:          my-jenkins
+    SecretOptionalName:  <nil>
+  jenkins-cache:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  jenkins-home:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  my-jenkins
+    ReadOnly:   false
+  sc-config-volume:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  tmp-volume:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  kube-api-access-wbp4j:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
