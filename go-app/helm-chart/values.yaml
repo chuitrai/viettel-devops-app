@@ -1,0 +1,35 @@
+# Số lượng Pods chạy song song
+replicaCount: 2
+
+image:
+  repository: chuitrai2901/vdt-go-app
+  pullPolicy: IfNotPresent
+  # Tag này sẽ được ghi đè tự động bởi Jenkins pipeline
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 8080
+  # Mở cổng NodePort cố định để dễ test
+  nodePort: 32005
+
+# Nơi lưu trữ các tham số truyền vào ứng dụng Golang
+config:
+  appName: "VDT Golang API"
+  environment: "Production"
+
+# Giới hạn tài nguyên phần cứng
+resources:
+  requests:
+    cpu: "10m"
+    memory: "32Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+
+# Tự động Auto-scale (HPA) nếu CPU bị nghẽn
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80

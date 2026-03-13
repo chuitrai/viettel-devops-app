@@ -6,8 +6,8 @@ pipeline {
             kind: Pod
             spec:
               containers:
-              - name: node
-                image: node:20-alpine
+              - name: golang
+                image: golang:1.21-alpine
                 command:
                 - cat
                 tty: true
@@ -27,8 +27,8 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
-        DOCKER_IMAGE = 'chuitrai2901/viettel-vdt-app' // Sửa 'chuitrai' thành username Dockerhub
-        APP_NAME = 'viettel-vdt-app'
+        DOCKER_IMAGE = 'chuitrai2901/vdt-go-app'
+        APP_NAME = 'vdt-go-app'
     }
 
     stages {
@@ -38,12 +38,15 @@ pipeline {
             }
         }
 
-        stage('Test & Lint') {
+        stage('Test & Lint Go Code') {
             steps {
-                container('node') {
-                    dir('app') {
-                        sh 'npm ci'
-                        sh 'npm run lint'
+                container('golang') {
+                    dir('go-app') {
+                        // Cấu hình Go proxy và tải thư viện
+                        sh 'go env -w GOPROXY=https://goproxy.io,direct'
+                        sh 'go mod download'
+                        sh 'go fmt ./...'
+                        sh 'go vet ./...'
                     }
                 }
             }
@@ -55,9 +58,9 @@ pipeline {
                     script {
                         // Khởi động Docker daemon
                         sh 'dockerd-entrypoint.sh &'
-                        sleep 5
+                        sleep 10 // Đợi lâu hơn một chút cho DIND khởi động
 
-                        dir('app') {
+                        dir('go-app') {
                             // Đánh version tự động theo BUILD_NUMBER của Jenkins
                             def imageTag = "${env.BUILD_NUMBER}"
                             def fullImageName = "${env.DOCKER_IMAGE}:${imageTag}"
@@ -76,16 +79,15 @@ pipeline {
             }
         }
         
-        stage('Update K8s Manifest') {
+        stage('Update Helm Chart') {
             steps {
-                container('docker') {
+                container('golang') {
                     script {
                         def imageTag = "${env.BUILD_NUMBER}"
-                        def fullImageName = "${env.DOCKER_IMAGE}:${imageTag}"
                         
-                        dir('app/k8s') {
-                            // Sửa file deployment yaml bằng sed để cập nhật dòng image
-                            sh "sed -i 's|image: .*|image: ${fullImageName}|g' app-deploy.yaml"
+                        dir('go-app/helm-chart') {
+                            // Sửa file values.yaml bằng sed để cập nhật dòng tag
+                            sh "sed -i 's|tag: .*|tag: \"'${imageTag}'\"|g' values.yaml"
                         }
 
                         // Push lại file đã sửa version lên Github để ArgoCD tự đọc
@@ -93,8 +95,8 @@ pipeline {
                             sh '''
                                 git config --global user.email "jenkins@viettel.com"
                                 git config --global user.name "Jenkins CI"
-                                git add app/k8s/app-deploy.yaml
-                                git commit -m "Jenkins Update Image to version ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
+                                git add go-app/helm-chart/values.yaml
+                                git commit -m "Jenkins Update Helm Image Tag to version ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
                                 git push origin HEAD:main
                             '''
                         }

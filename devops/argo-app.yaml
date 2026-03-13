@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/chuitrai/viettel-devops-app.git'
     targetRevision: HEAD
-    path: app/k8s                  # Đường dẫn tới thư mục chứa file app-deploy.yaml
+    path: go-app/helm-chart        # Đường dẫn tới thư mục chứa Helm Chart (Chart.yaml)
   destination:
     server: 'https://kubernetes.default.svc' # Triển khai trên chính cụm K8s này
     namespace: default
