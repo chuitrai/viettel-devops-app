@@ -15,6 +15,16 @@ type TestResponse struct {
 	Timestamp string `json:"timestamp"`
 }
 
+// Cấu trúc JSON của Google Cloud Pub/Sub Push Notification
+type PubSubMessage struct {
+	Message struct {
+		Data       string            `json:"data"`
+		MessageID  string            `json:"messageId"`
+		Attributes map[string]string `json:"attributes"`
+	} `json:"message"`
+	Subscription string `json:"subscription"`
+}
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	appName := os.Getenv("APP_NAME")
 	if appName == "" {
@@ -30,6 +40,14 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed. Please use POST", http.StatusMethodNotAllowed)
 		return
+	}
+
+	// Cố gắng đọc Body xem có phải là từ Google Pub/Sub gửi tới không
+	var pubsubMsg PubSubMessage
+	if err := json.NewDecoder(r.Body).Decode(&pubsubMsg); err == nil && pubsubMsg.Message.MessageID != "" {
+		log.Printf("🔔 [GMAIL TRIGGER] Nhận được thông báo từ Pub/Sub! MessageID: %s\n", pubsubMsg.Message.MessageID)
+	} else {
+		log.Println("✅ Nhận được request POST bình thường vào /test")
 	}
 
 	resp := TestResponse{
