@@ -1,11 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
+
+type TestResponse struct {
+	Message   string `json:"message"`
+	Status    string `json:"status"`
+	Timestamp string `json:"timestamp"`
+}
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	appName := os.Getenv("APP_NAME")
@@ -18,6 +26,23 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(msg))
 }
 
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed. Please use POST", http.StatusMethodNotAllowed)
+		return
+	}
+
+	resp := TestResponse{
+		Message:   "Testing Oke! API POST da hoat dong.",
+		Status:    "Success",
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}
+
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
@@ -25,6 +50,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/test", testHandler)
 	http.HandleFunc("/health", healthHandler)
 
 	port := os.Getenv("PORT")
