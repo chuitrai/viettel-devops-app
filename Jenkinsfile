@@ -2,55 +2,55 @@
         agent {
             kubernetes {
                 yaml '''
-    apiVersion: v1
-    kind: Pod
-    spec:
-    containers:
-    - name: golang
-        image: golang:1.21-alpine
-        command:
-        - cat
-        tty: true
-        resources:
-        requests:
-            memory: "128Mi"
-            cpu: "100m"
-        limits:
-            memory: "512Mi"
-            cpu: "500m"
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: golang
+    image: golang:1.21-alpine
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
 
-    - name: docker
-        image: docker:cli
-        command:
-        - cat
-        tty: true
-        securityContext:
-        privileged: true
-        env:
-        - name: DOCKER_TLS_CERTDIR
-        value: ""
-        - name: DOCKER_HOST
-        value: unix:///var/run/docker.sock
-        volumeMounts:
-        - name: docker-storage
-        mountPath: /var/lib/docker
-        - name: docker-sock
-        mountPath: /var/run/docker.sock
-        resources:
-        requests:
-            memory: "256Mi"
-            cpu: "100m"
-        limits:
-            memory: "1024Mi"
-            cpu: "1000m"
-
-    volumes:
+  - name: docker
+    image: docker:cli
+    command:
+    - cat
+    tty: true
+    securityContext:
+      privileged: true
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_HOST
+      value: unix:///var/run/docker.sock
+    volumeMounts:
     - name: docker-storage
-        emptyDir: {}
+      mountPath: /var/lib/docker
     - name: docker-sock
-        hostPath:
-        path: /var/run/docker.sock
-    '''
+      mountPath: /var/run/docker.sock
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "1024Mi"
+        cpu: "1000m"
+
+  volumes:
+  - name: docker-storage
+    emptyDir: {}
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+'''
             }
         }
 
