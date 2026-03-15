@@ -190,8 +190,25 @@ Khi `values.yaml` đã được Jenkins đẩy version mới nhất lên Github,
 3. **Giám sát sự đồng bộ (GitOps Tracker)**
    - Trở lại dashboard ứng dụng của ArgoCD, bạn sẽ thấy nó đang Spin-up các StatefulSet, Pod, Service cho đúng như trong Git. Khi mọi khối chuyển sang màu xanh (Sync OK / Healthy), ứng dụng đã được deploy thành công lên hệ thống K8s của bạn!
 
----
+#### Bước 5.3: Kiểm tra toàn diện hệ thống (End-to-End Check)
+Đây là cách để bạn xác minh rằng luồng công việc tự động (GitOps) đã chạy trơn tru từ đầu đến cuối:
 
+1. **Kiểm tra mặt trận CI (Jenkins & DockerHub):**
+   - Mở Jenkins UI (`http://192.168.56.10:32000`). Bấm vào Job `vdt-go-app`.
+   - Một tiến trình Build thành công sẽ có màu Xanh Lá (Success). Bấm vào tab **Console Output** để xem log Kaniko đóng gói và ném image thành công.
+   - Truy cập trang cá nhân Docker Hub của bạn, kiểm tra kho chứa ảnh (`chuitrai2901/vdt-go-app`). Bạn sẽ thấy nhãn Version (Tag) mới nhất vừa được đẩy lên trùng khớp với số Build của Jenkins.
+
+2. **Kiểm tra mặt trận CD (ArgoCD & Github):**
+   - Mở Github, vào file `go-app/helm-chart/values.yaml`. Bạn phải thấy dòng chữ `tag: "[Số-Build]"` đã tự động được nhảy số (Commit do Jenkins trigger).
+   - Mở ArgoCD UI (`https://192.168.56.10:32002`). Mục Application `vdt-go-app` phải báo "Synced" kèm theo trái tim "Healthy" màu xanh lá.
+   - Nhấp vào ứng dụng trong ArgoCD, bạn sẽ thấy nó đã tự động vẽ sơ đồ khởi tạo lại các khối Pods với cái thẻ Image đời mới nhất.
+
+3. **Log vào App (Kiểm tra thực tế tính năng):**
+   - Ứng dụng Go App của bạn trong bài Lab đã được thiết kế một dịch vụ phơi ra ngoài K8s ở cổng (Port) **`32005`** (NodePort khai báo trong Helm).
+   - Truy cập ứng dụng lên trình duyệt bằng đường dẫn: **`http://192.168.56.10:32005`** hoặc **`http://192.168.56.11:32005`**
+   - Màn hình sẽ hiển thị cấu trúc nội dung mà bạn lập trình bằng ngôn ngữ Go. Mỗi khi bạn thay code Go và đẩy lên nhánh `main`, 5 phút sau URL này sẽ tự động ra diện mạo mới do ArgoCD kéo về!
+
+---
 ## 🛑 Khắc phục lỗi thường gặp (Troubleshooting)
 
 ### 1. Kiến trúc Build Image Native không dùng Docker (Kaniko)
