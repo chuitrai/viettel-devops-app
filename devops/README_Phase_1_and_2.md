@@ -112,3 +112,35 @@ sudo kubeadm join 192.168.56.10:6443 --token abcdef.0123456789abcdef \
 ```
 
 Cuối cùng, quay lại máy Master kiểm tra bằng `kubectl get nodes`, thấy cả hai đổi màu xanh "Ready" là Giai đoạn 2 thành công mỹ mãn.
+
+### 6. Cài đặt k9s (Công cụ quản lý K8s trên Terminal)
+**THỰC HIỆN TRÊN MÁY: K8s-MASTER** (Không bắt buộc nhưng CỰC KỲ KHUYÊN DÙNG)
+`k9s` là một công cụ cung cấp giao diện dashboard trực quan ngay trong khung dòng lệnh (Terminal UI). Nhờ nó, bạn không cần phải gõ đi gõ lại hàng chục lệnh `kubectl` dài dòng để xem log, xóa pod hay đổi namespace nữa.
+
+Tiến hành tải file nhị phân phiên bản mới nhất, giải nén và di chuyển nó vào đường dẫn hệ thống để có thể gõ toàn cục:
+
+```bash
+# 1. Tải bản build Linux amd64 của k9s về máy Master
+wget https://github.com/derailed/k9s/releases/download/v0.32.4/k9s_Linux_amd64.tar.gz
+
+# 2. Giải nén file vừa tải
+tar -zxvf k9s_Linux_amd64.tar.gz
+
+# 3. Chuyển cấp quyền thực thi (nếu cần) và ném vào thư mục bin của hệ thống
+sudo chmod +x k9s
+sudo mv k9s /usr/local/bin/
+
+# 4. Kiểm tra cài đặt và dọn dẹp file thừa (không bắt buộc)
+k9s version
+rm k9s_Linux_amd64.tar.gz
+```
+
+Chỉ cần gõ **`k9s`** trên terminal là bạn sẽ thấy không gian quản lý cực đẹp hiện ra. 
+- Nhấn `: ` rồi gõ `pods`, `svc`, `node` để nhảy tới các tài nguyên.
+- Dùng các phím `d` (Xóa), `l` (Xem log), `s` (Chui vào container qua SSH), `ESC` (Quay lại).
+- Thoát hẳn k9s bằng `:quit` (Hoặc Ctrl + C).
+---
+
+## ⏭️ Chuyển tiếp tới Giai đoạn Tiếp Theo (Triển khai App với CI/CD)
+
+***Lưu ý:** Giai đoạn cài đặt hệ thống CI/CD (Jenkins, ArgoCD) và **hướng dẫn cấu hình Pipeline để Deploy App** nằm tại tài liệu `README_Phase_2.5_and_3.md`. Vui lòng tham khảo file đó để tiếp tục.*

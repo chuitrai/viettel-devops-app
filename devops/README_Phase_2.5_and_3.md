@@ -130,3 +130,115 @@ kubectl patch svc argocd-server -n argocd --type json -p '[
 > 💡 **Kiến thức K8s: Tại sao có thể mở web bằng IP của máy Worker (192.168.56.11) thay vì máy Master (192.168.56.10)?**
 > Bản chất của kiểu mạng lưới **NodePort** trong K8s là khái niệm "Cổng mở toàn cục". Khi bạn ban hành lệnh tạo NodePort (ví dụ cổng 32000), ông bảo vệ *Kube-proxy* sẽ lập tức chạy đi mở toang cổng 32000 trên **tất cả** các máy ảo đang có trong Cụm (Bao gồm cả Master và mọi Worker Node). 
 > Dù bản thân cái Pod Jenkins đang nằm vật lý ở máy Master hay máy Worker, Kube-proxy cũng tự lập một bản đồ định tuyến ngầm. Nếu bạn gõ IP máy Worker, Worker Node sẽ hứng Traffic, xem xét bản đồ, và nhận ra *"À cái Jenkins này đang nằm ở Master"*, nó sẽ tự động làm thao tác bế gói tin Network (NAT) quăng ngược lại sang máy Master cho bạn. Do đó, với K8s, **bạn dùng IP của máy nào trong luồng mạng cũng đều ra kết quả giống hệt nhau!**
+
+### 5. Thực thi Triển khai Ứng dụng (Deploy App) bằng Jenkins và ArgoCD
+
+Sau khi đã cung cấp cơ sở hạ tầng, tài liệu này hướng dẫn bạn cấu hình hai công cụ lõi là Jenkins (để build code/Docker image) và ArgoCD (để đồng bộ mã máy vào cụm K8s).
+
+#### Bước 5.1: Cấu hình Jenkins (Continuous Integration - CI)
+Jenkins sẽ chạy thư mục `Jenkinsfile` tạo sẵn để tự động checkout code, build ảnh Docker rồi đẩy lên repo Github của ta.
+
+1. **Khởi tạo Credentials (Mật khẩu tài khoản)**
+   - Đăng nhập Jenkins UI ở `http://192.168.56.10:32000` với user `admin`.
+   - Vào **Dashboard** > **Manage Jenkins** > **Credentials** > **System** > **Global credentials** > **Add Credentials**.
+   - Tạo Credential 1 (Sử dụng đăng nhập Docker Hub):
+     - Kind: "Username with password"
+     - Username: Tài khoản Docker Hub của bạn (VD: `chuitrai2901`).
+     - Password: Mật khẩu (Hoặc Docker Access Token).
+     - ID: `dockerhub-creds` *(Bắt buộc phải gõ đúng tên này theo config Jenkinsfile)*.
+   - Tạo Credential 2 (Sử dụng cập nhật source code từ Git):
+     - Kind: "Username with password"
+     - Username: Github Username (VD: `chuitrai`).
+     - Password: Personal Access Token (PAT) của Github với quyền `repo` và `admin`.
+     - ID: `github-creds` *(Bắt buộc theo config Jenkinsfile)*.
+
+2. **Chạy Pipeline Job (Build mã nguồn)**
+   - Về **Dashboard** > Bấm **New Item** > Tên `vdt-go-app` > Chọn loại **Pipeline**. Nhấn OK.
+   - SCM Definition: Kéo xuống mục Pipeline, Definition chọn **Pipeline script from SCM**.
+   - SCM: Chọn **Git**.
+   - Repository URL: Điền repo dự án của bạn (ví dụ: `https://github.com/chuitrai/viettel-devops-app.git`).
+   - Repository Credentials: Có thể chọn Add credential git để clone code pipeline (Nếu repo Git riêng tư).
+   - Branch Identifier: gõ `*/main`.
+   - Script Path: Gõ `Jenkinsfile`.
+   - Lưu lại (**Save**). Sau đó ấn **Build Now**. Jenkins sẽ tự mượn K8s tạo pod container Docker để build, đẩy image `vdt-go-app` lên DockerHub và commit cập nhật thẻ (tag image) vào thư mục `go-app/helm-chart/values.yaml` trên Github.
+
+#### Bước 5.2: Cấu hình ArgoCD (Continuous Deployment - CD)
+Khi `values.yaml` đã được Jenkins đẩy version mới nhất lên Github, ArgoCD sẽ phát hiện sự chênh lệch (GitOps Sync) và cập nhật ứng dụng tự động.
+
+1. **Thêm Repository chứa Application**
+   - Đăng nhập giao diện ArgoCD `https://192.168.56.10:32002` bằng HTTPS (có ssl unsafe flag).
+   - Chọn Sidebar > **Settings** > **Repositories** > Nhấn **+ CONNECT REPO**.
+   - Method: HTTPS
+   - Repository URL: Repo dự án (Vd: `https://github.com/chuitrai/viettel-devops-app.git`).
+   - Cung cấp Github username và PAT cho phần mềm tải code. Bấm Connect và Status phải là "Successful".
+
+2. **Tạo Project Ứng Dụng (Application)**
+   - Giao diện góc trái, bấm sang Tab **Applications** > Nhấn **+ NEW APP**.
+   - **General:**
+     - Application Name: `vdt-go-app`
+     - Project: `default`
+     - Sync Policy: `Automatic` (tích luôn vào mục `Prune resources` và `Self Heal` để Argo tự động xóa Pod rác và đảm bảo state mong muốn).
+   - **Source:**
+     - Repository URL: `https://github.com/chuitrai/viettel-devops-app.git`
+     - Revision: `HEAD`.
+     - Path: `go-app/helm-chart` *(ArgoCD sẽ tự nhận diện đây là nguồn cấp Helm Chart).*
+   - **Destination:**
+     - Cluster URL: `https://kubernetes.default.svc`
+     - Namespace: Gõ `default` hoặc một Namespace tuỳ chọn do bạn đã định khung bên file k8s.
+   - Cuối cùng, nhấn chọn nút **CREATE** phía trên.
+   
+3. **Giám sát sự đồng bộ (GitOps Tracker)**
+   - Trở lại dashboard ứng dụng của ArgoCD, bạn sẽ thấy nó đang Spin-up các StatefulSet, Pod, Service cho đúng như trong Git. Khi mọi khối chuyển sang màu xanh (Sync OK / Healthy), ứng dụng đã được deploy thành công lên hệ thống K8s của bạn!
+
+---
+
+## 🛑 Khắc phục lỗi thường gặp (Troubleshooting)
+
+### 1. Kiến trúc Build Image Native không dùng Docker (Kaniko)
+**Vấn đề cũ:** Trong các hướng dẫn CI/CD truyền thống, Jenkins thường sử dụng một container `docker:dind` (Docker-in-Docker) hoặc xin mount socket `/var/run/docker.sock` từ máy chủ (Host) để thu thập khả năng đóng gói Image. Tuy nhiên, kể từ bản K8s v1.24+, Docker đã bị loại bỏ hoàn toàn để nhường sân cho `containerd`. Việc cố tình chạy lõi Docker sinh ra các lỗi xung đột như `Cannot connect to the Docker daemon`.
+
+**Giải pháp chuẩn DevOps:** 
+Trong file `Jenkinsfile` đi kèm của Repository này, kiến trúc đã được nâng cấp lên dùng **Kaniko** (`gcr.io/kaniko-project/executor`).
+- Kaniko build trực tiếp cấu trúc Dockerfile thành ảnh Container bên trong không gian người dùng (userspace).
+- Tuyệt đối KHÔNG cần quyền `privileged` rủi ro bảo mật.
+- Tuyệt đối KHÔNG phụ thuộc vào việc máy chủ vật lý bên ngoài (Master/Worker) có cài đặt phần mềm Docker hay không.
+- Cơ chế đẩy (Push) được cấu hình trưc tiếp bằng việc tự động tạo file xác thực `/kaniko/.docker/config.json`. Mọi thứ độc lập và Cloud-Native 100%. Môi trường của bạn luôn sạch sẽ!
+
+### 2. Quản lý trạng thái Vagrant an toàn (Nghỉ ngơi / Tạm dừng)
+Nếu bạn cần đi ngủ, **TUYỆT ĐỐI KHÔNG tắt nóng màn hình hay ép Shutdown** vì điều này có thể phá nát mạng nội bộ của Cụm máy ảo Kubernetes. Luôn đứng ở Terminal ngoài Windows (thư mục `devops/vagrant/`) và chạy:
+
+- Dành cho Ngủ đông (Bảo toàn RAM - Nhanh): `vagrant suspend`.
+- Dành cho Tắt hẳn (Giải phóng RAM - Xoá sạch): `vagrant halt`.
+- Khởi động lại sáng hôm sau: `vagrant up`.
+
+### 3. Lỗi Lấy Số Liệu `kubectl top nodes`: `error: Metrics API not available`
+**Nguyên nhân:**
+Quá trình cài đặt Metrics Server ban đầu thành công, nhưng K8s API không thể lấy được số liệu do **Plugin Flannel** và con robot **Kubelet** bị K8s tự động ép ăn theo card mạng mặc định NAT `eth0` (địa chỉ 10.0.2.15). Do thiết kế của máy ảo kiến trúc Vagrant, đường hầm mạng Host-Only thực chất nằm ở card thứ hai (điển hình là **`enp0s8`** hoặc `eth1` tuỳ phiên bản Linux). Việc này làm Metrics Server không kiếm thấy máy để lấy số liệu.
+
+**Cách khắc phục:**
+Cần ép Flannel và Kubelet nhận diện số liệu từ card `enp0s8` (IP định nghĩa trong cấu hình là `192.168.56.x`).
+
+**Bước 3.1. Ép Flannel CNI chạy trên cổng mạng `enp0s8` (Thực hiện trên máy Master):**
+```bash
+# Sửa thiết lập cấu hình chạy của kube-flannel 
+kubectl -n kube-flannel patch daemonset kube-flannel-ds --type json -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--iface=enp0s8"}]'
+
+# Xóa pod Flannel cũ đi để K8s tự động reset lại theo cấu hình mới 
+kubectl delete pod -n kube-flannel -l app=flannel
+```
+
+**Bước 3.2. Ép thay đổi Node IP chuẩn cho Kubelet (Thực hiện trên Master và cả Worker):**
+
+*Trên máy Master, thực thi lệnh:*
+```bash
+sudo sh -c 'echo "KUBELET_EXTRA_ARGS=--node-ip=192.168.56.10" > /etc/default/kubelet'
+sudo systemctl daemon-reload && sudo systemctl restart kubelet
+```
+
+*Trên máy Worker (dùng terminal mới gõ `vagrant ssh worker`), thực thi lệnh:*
+```bash
+sudo sh -c 'echo "KUBELET_EXTRA_ARGS=--node-ip=192.168.56.11" > /etc/default/kubelet'
+sudo systemctl daemon-reload && sudo systemctl restart kubelet
+```
+
+Sau khi sửa xong 2 lỗi thiết lập card mạng K8s trên, bạn xóa Metrics Server đi và cài lại (`kubectl delete -f ...` và `kubectl apply -f ...`) rồi đợi khoảng từ 1-2 phút là lệnh `kubectl top nodes` sẽ in ra thông tin CPU & RAM như kỳ vọng.

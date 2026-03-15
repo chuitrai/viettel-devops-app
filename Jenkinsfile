@@ -19,23 +19,12 @@ spec:
         memory: "512Mi"
         cpu: "500m"
 
-  - name: docker
-    image: docker:cli
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
     command:
+    - busybox
     - cat
     tty: true
-    securityContext:
-      privileged: true
-    env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-    - name: DOCKER_HOST
-      value: unix:///var/run/docker.sock
-    volumeMounts:
-    - name: docker-storage
-      mountPath: /var/lib/docker
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
     resources:
       requests:
         memory: "256Mi"
@@ -43,13 +32,6 @@ spec:
       limits:
         memory: "1024Mi"
         cpu: "1000m"
-
-  volumes:
-  - name: docker-storage
-    emptyDir: {}
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
 '''
             }
         }
@@ -89,41 +71,31 @@ spec:
                 }
             }
 
-            stage('Build & Push Docker Image') {
+            stage('Build & Push Docker Image (Kaniko)') {
                 steps {
-                    container('docker') {
-                        script {
+                    container('kaniko') {
+                        dir('go-app') {
 
-                            sh '''
-                            docker info
-                            '''
+                            def imageTag = "${env.BUILD_NUMBER}"
+                            def fullImageName = "${env.DOCKER_IMAGE}:${imageTag}"
+                            def latestImageName = "${env.DOCKER_IMAGE}:latest"
 
-                            dir('go-app') {
-
-                                def imageTag = "${env.BUILD_NUMBER}"
-                                def fullImageName = "${env.DOCKER_IMAGE}:${imageTag}"
-                                def latestImageName = "${env.DOCKER_IMAGE}:latest"
-
-                                withCredentials([usernamePassword(
-                                    credentialsId: env.DOCKERHUB_CREDENTIALS,
-                                    passwordVariable: 'DOCKERHUB_PASS',
-                                    usernameVariable: 'DOCKERHUB_USER'
-                                )]) {
-
-                                    sh '''
-                                    echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
-                                    '''
-
-                                    sh """
-                                    docker build --pull -t ${fullImageName} -t ${latestImageName} .
-                                    docker push ${fullImageName}
-                                    docker push ${latestImageName}
-                                    """
-
-                                    sh """
-                                    docker rmi ${fullImageName} ${latestImageName} || true
-                                    """
-                                }
+                            withCredentials([usernamePassword(
+                                credentialsId: env.DOCKERHUB_CREDENTIALS,
+                                passwordVariable: 'DOCKERHUB_PASS',
+                                usernameVariable: 'DOCKERHUB_USER'
+                            )]) {
+                                sh """
+                                # Tạo file xác thực cho Kaniko đẩy image lên Docker Hub
+                                mkdir -p /kaniko/.docker
+                                echo "{\\"auths\\":{\\"https://index.docker.io/v1/\\":{\\"auth\\":\\"\$(echo -n \${DOCKERHUB_USER}:\${DOCKERHUB_PASS} | base64 | tr -d '\\n')\\"}}}" > /kaniko/.docker/config.json
+                                
+                                # Chạy Kaniko executor để build và push
+                                /kaniko/executor --context `pwd` \\
+                                                 --dockerfile `pwd`/Dockerfile \\
+                                                 --destination ${fullImageName} \\
+                                                 --destination ${latestImageName}
+                                """
                             }
                         }
                     }
