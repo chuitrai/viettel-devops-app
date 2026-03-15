@@ -56,7 +56,7 @@ spec:
                         dir('go-app') {
 
                             sh 'go env -w GOPROXY=https://goproxy.io,direct'
-                            sh 'go mod download'
+                            sh 'go mod tidy'
 
                             sh '''
                             if [ -n "$(go fmt ./...)" ]; then
