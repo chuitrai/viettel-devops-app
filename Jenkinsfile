@@ -74,28 +74,30 @@ spec:
             stage('Build & Push Docker Image (Kaniko)') {
                 steps {
                     container('kaniko') {
-                        dir('go-app') {
+                        script {
+                            dir('go-app') {
 
-                            def imageTag = "${env.BUILD_NUMBER}"
-                            def fullImageName = "${env.DOCKER_IMAGE}:${imageTag}"
-                            def latestImageName = "${env.DOCKER_IMAGE}:latest"
+                                def imageTag = "${env.BUILD_NUMBER}"
+                                def fullImageName = "${env.DOCKER_IMAGE}:${imageTag}"
+                                def latestImageName = "${env.DOCKER_IMAGE}:latest"
 
-                            withCredentials([usernamePassword(
-                                credentialsId: env.DOCKERHUB_CREDENTIALS,
-                                passwordVariable: 'DOCKERHUB_PASS',
-                                usernameVariable: 'DOCKERHUB_USER'
-                            )]) {
-                                sh """
-                                # Tạo file xác thực cho Kaniko đẩy image lên Docker Hub
-                                mkdir -p /kaniko/.docker
-                                echo "{\\"auths\\":{\\"https://index.docker.io/v1/\\":{\\"auth\\":\\"\$(echo -n \${DOCKERHUB_USER}:\${DOCKERHUB_PASS} | base64 | tr -d '\\n')\\"}}}" > /kaniko/.docker/config.json
-                                
-                                # Chạy Kaniko executor để build và push
-                                /kaniko/executor --context `pwd` \\
-                                                 --dockerfile `pwd`/Dockerfile \\
-                                                 --destination ${fullImageName} \\
-                                                 --destination ${latestImageName}
-                                """
+                                withCredentials([usernamePassword(
+                                    credentialsId: env.DOCKERHUB_CREDENTIALS,
+                                    passwordVariable: 'DOCKERHUB_PASS',
+                                    usernameVariable: 'DOCKERHUB_USER'
+                                )]) {
+                                    sh """
+                                    # Tạo file xác thực cho Kaniko đẩy image lên Docker Hub
+                                    mkdir -p /kaniko/.docker
+                                    echo "{\\"auths\\":{\\"https://index.docker.io/v1/\\":{\\"auth\\":\\"\$(echo -n \${DOCKERHUB_USER}:\${DOCKERHUB_PASS} | base64 | tr -d '\\n')\\"}}}" > /kaniko/.docker/config.json
+                                    
+                                    # Chạy Kaniko executor để build và push
+                                    /kaniko/executor --context `pwd` \\
+                                                     --dockerfile `pwd`/Dockerfile \\
+                                                     --destination ${fullImageName} \\
+                                                     --destination ${latestImageName}
+                                    """
+                                }
                             }
                         }
                     }
