@@ -125,6 +125,7 @@ spec:
                             )]) {
 
                                 sh '''
+                                apk add --no-cache git
                                 git config --global user.email "jenkins@viettel.com"
                                 git config --global user.name "Jenkins CI"
 
