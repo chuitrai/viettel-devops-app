@@ -133,6 +133,7 @@ spec:
                                 git add go-app/helm-chart/values.yaml
                                 git commit -m "Jenkins Update Helm Image Tag to version ${BUILD_NUMBER} [skip ci]" || echo "No changes"
 
+                                git restore .
                                 git pull origin main --rebase
                                 git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/chuitrai/viettel-devops-app.git HEAD:main
                                 '''
