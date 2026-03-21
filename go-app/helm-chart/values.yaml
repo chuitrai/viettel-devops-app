@@ -5,7 +5,7 @@ image:
   repository: chuitrai2901/vdt-go-app
   pullPolicy: IfNotPresent
   # Tag này sẽ được ghi đè tự động bởi Jenkins pipeline
-  tag: "16"
+  tag: "20"
 
 service:
   type: NodePort
