@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Ensure namespace logging exists
+      command: kubectl create namespace logging
+      ignore_errors: yes
+
+    - name: Add Elastic helm repository
+      command: helm repo add elastic https://helm.elastic.co
+      
+    - name: Update helm repository
+      command: helm repo update
+
+    - name: Install Elasticsearch
+      command: >
+        helm upgrade --install elasticsearch elastic/elasticsearch -n logging 
+        --set replicas=1 --set minimumMasterNodes=1 --set resources.requests.cpu="100m" --set resources.requests.memory="512Mi" --set resources.limits.cpu="1000m" --set resources.limits.memory="1024Mi"
+      ignore_errors: yes
+
+    - name: Install Kibana
+      command: >
+        helm upgrade --install kibana elastic/kibana -n logging 
+        --set resources.requests.cpu="100m" --set resources.requests.memory="512Mi" --set resources.limits.cpu="1000m" --set resources.limits.memory="1024Mi" --set service.type=NodePort --set service.nodePort=32007
+      ignore_errors: yes
+
+    - name: Install Fluentd Daemonset using Bitnami Chart
+      command: >
+        helm repo add bitnami https://charts.bitnami.com/bitnami &&
+        helm upgrade --install fluentd bitnami/fluentd -n logging 
+        --set forwarder.enabled=true 
+        --set aggregator.enabled=false
+        --set forwarder.configMap=fluentd-config
+      ignore_errors: yes

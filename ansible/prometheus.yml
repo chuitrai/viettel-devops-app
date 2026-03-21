@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "vdt-go-app"
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ["192.168.56.11:32005", "192.168.56.10:32005"]

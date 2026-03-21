@@ -40,4 +40,5 @@ ViettelProject/
     └── ingress/
 ```
 
-Các bước chi tiết (Cập nhật Code, Chạy Ansible, Test Security) sẽ được bổ sung chi tiết ở các phần bên dưới sau khi hệ thống Code hoàn tất!
+Các bước chi tiết (Cập nhật Code, Chạy Ansible, Test Security) sẽ được bổ sung chi tiết ở các phần bên dưới sau khi hệ thống Code hoàn tất.
+

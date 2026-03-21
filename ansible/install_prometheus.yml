@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Ensure docker is installed
+      apt:
+        name: 
+          - docker.io
+          - python3-docker
+        state: present
+        update_cache: yes
+      
+    - name: Ensure docker is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Deploy Prometheus Container
+      docker_container:
+        name: prometheus
+        image: prom/prometheus:latest
+        state: started
+        restart_policy: always
+        ports:
+          - "9090:9090"
+        volumes:
+          - "{{ playbook_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
